@@ -34,12 +34,14 @@ export default function LoginCard() {
                 <Formik
                     {...formikProps}
                     onSubmit={(values) => {
+                    console.log(values);
+                    
                     handleLogin(values)
                     }}
                 >
                 {({ errors, touched,handleBlur,values}:any) => (
                     <Form className='space-y-4'>
-                    <SmapleFields type={'email'} name={'email'} errors={errors.email} touched={touched.email} values={values.email} handleBlur={handleBlur} placeHolder={'Your Email'} />
+                    <SmapleFields type={'username'} name={'username'} errors={errors.username} touched={touched.username} values={values.username} handleBlur={handleBlur} placeHolder={'Your userName'} />
                     <SmapleFields type={'password'} name={'password'} errors={errors.password} touched={touched.password} values={values.password} handleBlur={handleBlur} placeHolder={'Password'} /> 
                     <button  type='submit' className="group  mx-auto block px-4 py-4 border-gray-300 transition-all duration-300 hover:border-black border-2 text-white rounded-full disabled:opacity-50 disabled:cursor-not-allowed">
                         {isMutating?

@@ -5,6 +5,8 @@ import UserInfo from './components/profile/UserInfo';
 import ArticlesCard from './components/card/articles/ArticlesCard';
 import ChartsCard from './components/card/charts/ChartsCard';
 import isAuth from './auth/isAuth';
+import RenewAccount from './components/renew';
+import GetAccount from './components/GetNewAccount';
 
 
 const Dashboard = () => {
@@ -30,7 +32,7 @@ const Dashboard = () => {
       enterFrom="transform opacity-0 translate-y-10"
       enterTo="transform opacity-100 translate-y-0"
       >
-      <div className='  mb-10 h-80  rounded-2xl  bg-white overflow-hidden shadow-2xl hover:scale-[1.03] transition-all duration-300 ease-in-out' >
+      <div className='  mb-10  rounded-2xl bg-white overflow-hidden shadow-2xl hover:scale-[1.03] transition-all duration-300 ease-in-out' >
           <ArticlesCard limited={true}/>
       </div>
       </Transition>

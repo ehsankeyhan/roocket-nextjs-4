@@ -4,11 +4,10 @@ import * as Yup from 'yup';
 
 export default function useLoginValidation() {
     const validationLogin = Yup.object({
-        email: Yup.string()
-        .email('Invalid email address')
+        username: Yup.string()
         .required('Required'),
         password: Yup.string()
-        .min(5,'Must be 5 characters or than')
+        .min(4,'Must be 4 characters or than')
         .required('Required'),
      })
   return validationLogin;

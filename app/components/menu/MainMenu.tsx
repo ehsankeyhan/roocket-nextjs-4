@@ -46,7 +46,8 @@ export default function MainMenu() {
                     >
                     <div className={`right-24  top-[3.2rem] grid grid-cols-3 gap-x-3 p-4 max-w-72 mx-auto absolute  bg-white rounded-2xl shadow-xl transition-all duration-300 ease-in-out`}>
                         <Item name='Dashboard' />
-                        <Item name='Articles' />
+                        <Item name='Charts' />
+                        <Item name='Orders' />
                     </div>
                 </Transition>
             </Menu>

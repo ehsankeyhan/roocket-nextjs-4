@@ -13,6 +13,8 @@ import useSweetAlert from '../../../hooks/useSweetAlert';
 import useSWR from 'swr';
 import HeaderCard from '../HeaderCard';
 import AddNewTitleModal from '../../modal/AddNewTitleModal';
+import RenewAccount from '../../renew';
+import ChangeAccount from '../../change';
 
 const fetcher = (url: string) => axios.get(url).then(res => res.data)
 
@@ -22,37 +24,37 @@ export default function ArticlesCard({limited}:any) {
     const [articlesData , articleDispatcher ] = useReducer(ArticlesReducer,[]) 
     const [isNewTitleModalOpen, setIsNewTitleModalOpen] = useState(false);
     const Toast = useSweetAlert()
-    const { data, error, isLoading } = useSWR('https://65f7f726b4f842e808867f20.mockapi.io/rocket-1/api/Articles', fetcher)
-    useEffect(()=>{
-        if(data){
-            const sortedData = data.sort((a: { createdAt: any | number | Date; }, b: { createdAt: any | number | Date; }) => {
-                const dateA = a.createdAt instanceof Date ? a.createdAt : new Date(a.createdAt);
-                const dateB = b.createdAt instanceof Date ? b.createdAt : new Date(b.createdAt);
-                return dateB.getTime() - dateA.getTime();
-            });
+    // const { data, error, isLoading } = useSWR('https://65f7f726b4f842e808867f20.mockapi.io/rocket-1/api/Articles', fetcher)
+    // useEffect(()=>{
+    //     if(data){
+    //         const sortedData = data.sort((a: { createdAt: any | number | Date; }, b: { createdAt: any | number | Date; }) => {
+    //             const dateA = a.createdAt instanceof Date ? a.createdAt : new Date(a.createdAt);
+    //             const dateB = b.createdAt instanceof Date ? b.createdAt : new Date(b.createdAt);
+    //             return dateB.getTime() - dateA.getTime();
+    //         });
             
-            articleDispatcher({
-                type : 'initial-articles',
-                articlesData : sortedData
-            })
-        }
-    },[data])
-    useEffect(()=>{
-        if(error){
-           Toast.fire({
-                icon: "error",
-                title: "An internal server Error"
-              });
-        }
-    },[error])
+    //         articleDispatcher({
+    //             type : 'initial-articles',
+    //             articlesData : sortedData
+    //         })
+    //     }
+    // },[data])
+    // useEffect(()=>{
+    //     if(error){
+    //        Toast.fire({
+    //             icon: "error",
+    //             title: "An internal server Error"
+    //           });
+    //     }
+    // },[error])
 
 
     
   return (
-    <div>
+    <div className=''>
         <div className=' bg-[#dceefd] p-3 '>
             {limited?
-            <HeaderCard title={'Articles'} />
+            <HeaderCard title={'Charts'} />
             :<div className={`'p-3  flex justify-between rounded-xl'`}>
                 <div className='flex items-center gap-x-3'>
                     <div className='w-10'>
@@ -72,11 +74,11 @@ export default function ArticlesCard({limited}:any) {
             </div>}
             
         </div>
-        <div className={`transition-all ease-in-out duration-500 m-3  ${!limited&&!isLoading?'max-h-[480px] overflow-y-scroll':'max-h-80 '}`}>
+        <div className={`transition-all ease-in-out duration-500 m-3`}>
         <ArticlesContext.Provider value={{articlesData,articleDispatcher}}>
           <table className='w-full '>
                 <tbody className=''>
-                        {articlesData&&!isLoading?
+                        {articlesData?
                             (limited?articlesData?.slice(0,3).map((article: { id: React.Key | null | undefined; },index: any)=>(
                                 <AriticleItem key={article.id} index={index} article={article} limited={limited}/>
                             )):articlesData?.map((article: { id: React.Key | null | undefined; },index: any)=>(
@@ -91,6 +93,9 @@ export default function ArticlesCard({limited}:any) {
                         }
                 </tbody>
             </table>
+            <RenewAccount />
+            {/* <ChangeAccount /> */}
+
             <AddNewTitleModal 
             isOpen={isNewTitleModalOpen} 
             setIsOpen={setIsNewTitleModalOpen} 

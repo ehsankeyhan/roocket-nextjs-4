@@ -22,7 +22,7 @@ export default function LoginCard() {
                 <p className='font-semibold text-xl '>iAdmin</p>
             </div>
             <div className=' mt-20 md:mx-20 mx-10 transition-all duration-300 ease-in-out'>
-                <p className='font-medium text-center mb-5  text-4xl'>Sign In With Email</p>
+                <p className='font-medium text-center mb-5  text-4xl'>Sign In With UserName</p>
                 <Formik
                     {...formikProps}
                     onSubmit={(values) => {
@@ -31,7 +31,7 @@ export default function LoginCard() {
                 >
                 {({ errors, touched,handleBlur,values}) => (
                     <Form className='space-y-4'>
-                    <SmapleFields type={'email'} name={'email'} errors={errors.email} touched={touched.email} values={values.email} handleBlur={handleBlur} placeHolder={'Your Email'} />
+                    <SmapleFields type={'username'} name={'username'} errors={errors.username} touched={touched.username} values={values.username} handleBlur={handleBlur} placeHolder={'Your username'} />
                     <SmapleFields type={'password'} name={'password'} errors={errors.password} touched={touched.password} values={values.password} handleBlur={handleBlur} placeHolder={'Password'} /> 
                     <button  type='submit' className="group  mx-auto block px-4 py-4 border-gray-300 transition-all duration-300 hover:border-black border-2 text-white rounded-full disabled:opacity-50 disabled:cursor-not-allowed">
                         {isMutating?
