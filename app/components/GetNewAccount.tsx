@@ -4,7 +4,6 @@ import useAuth from '../hooks/useAuth';
 import { Button, Modal, Box, Typography } from '@mui/material';
 
 export default function GetAccount() {
-    const [price, setPrice] = useState(320000); // Default price for 1 month
     const [isProcessing, setIsProcessing] = useState(false);
     const [message, setMessage] = useState("");
     const [dataVmess, setDataVmess] = useState(""); // State for QR code data
@@ -20,12 +19,13 @@ export default function GetAccount() {
         setIsLoading(true)
         let gigabytes;
         let months = parseInt(plan)
+        let price:any;
         if (plan === '1') {
+            price = 320000;
             gigabytes=50
-            setPrice(320000) ;
         } else if (plan === '3') {
+            price = 860000;
             gigabytes=200
-            setPrice(860000) ;
         }
 
         // Check payment before fetching the data
@@ -33,7 +33,7 @@ export default function GetAccount() {
         if (!isPaymentOk) return;
 
         // Fetch data immediately after plan selection
-        await fetchDataUpdateNew(gigabytes,months);
+        await fetchDataUpdateNew(gigabytes,months,price);
     };
 
     // Step 2: Check payment before proceeding
@@ -61,7 +61,7 @@ export default function GetAccount() {
     };
 
     // Step 3: Fetch data and process account update
-    const fetchDataUpdateNew = async (gigabytes:any,months:any) => {
+    const fetchDataUpdateNew = async (gigabytes:any,months:any,price:any) => {
         setIsProcessing(true);
         setMessage("");
 

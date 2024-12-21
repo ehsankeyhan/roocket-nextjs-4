@@ -11,22 +11,21 @@ export async function GET(req: NextRequest) {
 
     // URLs of the APIs
     const apiUrls = [
-      // 'http://irnh.giftomo.net:44445/login',
-      // 'http://iroh.giftomo.net:44445/login',
-      // 'http://irkh.giftomo.net:44445/login',
-      // 'http://irmh.giftomo.net:44445/login',
-      // 'http://irph.giftomo.net:44445/login',
-      // 'http://irsh.giftomo.net:44445/login',
-      // 'http://iruh.giftomo.net:44445/login',
-      // 'http://irwh.giftomo.net:44445/login',
-      // 'http://irxh.giftomo.net:44445/login',
-      // 'http://iryh.giftomo.net:44445/login',
-      // 'http://irzh.giftomo.net:44445/login',
-      // 'http://irth.giftomo.net:44445/login',
-      // 'http://ireh.giftomo.net:44445/login',
-      // 'http://irvh.giftomo.net:44445/login',
-      // 'http://irah.giftomo.net:44445/login',
-      'http://188.121.121.117:44445/login',
+      'http://irnh.giftomo.net:44445/login',
+      'http://iroh.giftomo.net:44445/login',
+      'http://irkh.giftomo.net:44445/login',
+      'http://irmh.giftomo.net:44445/login',
+      'http://irph.giftomo.net:44445/login',
+      'http://irsh.giftomo.net:44445/login',
+      'http://iruh.giftomo.net:44445/login',
+      'http://irwh.giftomo.net:44445/login',
+      'http://irxh.giftomo.net:44445/login',
+      'http://iryh.giftomo.net:44445/login',
+      'http://irzh.giftomo.net:44445/login',
+      'http://irth.giftomo.net:44445/login',
+      'http://ireh.giftomo.net:44445/login',
+      'http://irvh.giftomo.net:44445/login',
+      'http://irah.giftomo.net:44445/login',
 
     ];
 
@@ -58,10 +57,10 @@ export async function GET(req: NextRequest) {
       })
     );
 
-    // // Save the data to a CSV file
-    // const csvContent = 'ID,SessionCookie\n' + ids.map((id:any, index:any) => `${id},${sessionCookies[index]}`).join('\n');
-    // const filePath = path.join(process.cwd(), 'public', 'cookie.csv');
-    // fs.writeFileSync(filePath, csvContent);
+    // Save the data to a CSV file
+    const csvContent = 'ID,SessionCookie\n' + ids.map((id:any, index:any) => `${id},${sessionCookies[index]}`).join('\n');
+    const filePath = path.join(process.cwd(), 'public', 'cookie.csv');
+    fs.writeFileSync(filePath, csvContent);
 
     // Send all the extracted session cookie values and IDs as the API response
     return NextResponse.json({ ids, sessionCookies });
