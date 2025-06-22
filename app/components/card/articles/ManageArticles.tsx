@@ -12,6 +12,7 @@ export default function ManageArticles() {
   const [falseCount, setFalseCount] = useState(0);
   const [trueCount, setTrueCount] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
+  const [activeCount, setActiveCount] = useState(0);
   const [qrCodeItemId, setQrCodeItemId] = useState(null);
   const [newData, setNewData] = useState<any>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -37,7 +38,7 @@ export default function ManageArticles() {
   }, [data]);
 
   function processTableData(items: any[]) {
-    let falseCountLocal = 0, trueCountLocal = 0, totalCountLocal = 0;
+    let falseCountLocal = 0, trueCountLocal = 0, totalCountLocal = 0,ActiveCountLocal = 0;
     const sessionToken = getCookie('sessionToken');
 
     const processedData = items
@@ -47,7 +48,7 @@ export default function ManageArticles() {
         const link = {
           "v": "2",
           "ps": item.remark,
-          "add": `${item.remark.substring(0, 3)}.giftomo.net`,
+          "add": `${dropdownValue}.giftomo.net`,
           "port": item.port,
           "id": id,
           "aid": 0,
@@ -57,13 +58,16 @@ export default function ManageArticles() {
           "path": "/",
           "tls": "none"
         };
+        console.log(link);
+        
         const vmess = "vmess://" + btoa(JSON.stringify(link));
         const startSessionToken = sessionToken?.substring(0, 8) || '';
         const startId = id.substring(0, 8);
         const formattedDate = formatDateToDDMMYY(new Date(item.expiryTime));
         const isItemEnabled = item.enable !== false;
-          //true
+          //true admin comment
           //startSessionToken===startId
+          isItemEnabled ? ActiveCountLocal++ : null
         if (startSessionToken===startId) {
           totalCountLocal++;
           isItemEnabled ? trueCountLocal++ : falseCountLocal++;
@@ -74,7 +78,7 @@ export default function ManageArticles() {
         return null;
       })
       .filter(item => item !== null);
-
+    setActiveCount(ActiveCountLocal);
     setFalseCount(falseCountLocal);
     setTrueCount(trueCountLocal);
     setTotalCount(totalCountLocal);
@@ -108,38 +112,38 @@ export default function ManageArticles() {
   }
 
   const handleToggleAccount = async (item: any) => {
-    const { enable, region, userId, up, down, total, remark, expiryTime, listen, port, protocol, settings, streamSettings, tag, sniffing } = item;
+    // const { enable, region, userId, up, down, total, remark, expiryTime, listen, port, protocol, settings, streamSettings, tag, sniffing } = item;
 
-    const response = await fetch(`https://apiadmin.giftomo.net/api/inbound/update/${item.remark.substring(0, 3)}/${item.id}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        enable: !enable,
-        region,
-        userId,
-        up,
-        down,
-        total,
-        remark,
-        expiryTime,
-        listen,
-        port,
-        protocol,
-        settings,
-        streamSettings,
-        tag,
-        sniffing
-      }),
-    });
-
-    if (response.ok) {
-      const updatedAccount = await response.json();
-      mutate(`https://apiadmin.giftomo.net/api/data/${dropdownValue}`);
-    } else {
-      alert('Error updating account status');
-    }
+    // const response = await fetch(`https://apiadmin.giftomo.net/api/inbound/update/${item.remark.substring(0, 3)}/${item.id}`, {
+    //   method: 'POST',
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //   },
+    //   body: JSON.stringify({
+    //     enable: !enable,
+    //     region,
+    //     userId,
+    //     up,
+    //     down,
+    //     total,
+    //     remark,
+    //     expiryTime,
+    //     listen,
+    //     port,
+    //     protocol,
+    //     settings,
+    //     streamSettings,
+    //     tag,
+    //     sniffing
+    //   }),
+    // });
+    alert('Contact admin to enable or disable account');
+    // if (response.ok) {
+    //   const updatedAccount = await response.json();
+    //   mutate(`https://apiadmin.giftomo.net/api/data/${dropdownValue}`);
+    // } else {
+    //   alert('Error updating account status');
+    // }
   };
 
   const filteredData = newData.filter((item:any) => {
@@ -174,6 +178,10 @@ export default function ManageArticles() {
             </div>
 
             <div className="flex justify-around">
+              <div className="active-server">
+                <h4>All active <br /> Account</h4>
+                <p>{activeCount}</p>
+              </div>
               <div className="active-server">
                 <h4>Activate <br /> Account</h4>
                 <p>{trueCount}</p>

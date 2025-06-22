@@ -4,42 +4,29 @@ import { v4 as uuidv4 } from 'uuid';
 import fs from 'fs';
 import path from 'path';
 
-const mbToBytes = (mb: number): string => {
-  return (mb * 1024 * 1024).toString();
-};
-
-const calcExpiryTime = (minutes: number): string => {
-  const currentDate = new Date();
-  currentDate.setMinutes(currentDate.getMinutes() + minutes);
-  return Math.floor(currentDate.getTime()).toString();
-};
-
 export async function GET(req: NextRequest) {
   // Get and validate search params
   const searchParams = req.nextUrl.searchParams;
-  const expireMinutes = parseInt(searchParams.get('expire') || '30');
-  const gigabytes = parseInt(searchParams.get('gigs') || '250');
+  const expireTime = searchParams.get('expire');
+  const gigabytes = searchParams.get('gigs');
+  const userId = searchParams.get('userId');
 
-  // Validate limits for non-admin users
-    if (expireMinutes > 30) {
-      return NextResponse.json({
-        error: 'Expire time limit exceeded'
-      });
-    }
-    if (gigabytes > 1000) {
-      return NextResponse.json({
-        error: 'Traffic limit exceeded '
-      });
-    }
+  // Check if required parameters are provided
+  if (!expireTime || !gigabytes) {
+    return NextResponse.json({
+      error: 'Invalid request',
+      details: 'Both expire and gigs parameters are required'
+    }, { status: 400 });
+  }
 
-  // Use final values
-  const finalExpireMinutes = expireMinutes || 30;
-  const finalGigabytes = gigabytes || 250;
+  // Parse parameters after validation
+  const expireMinutes = parseInt(expireTime);
+  const gigabytesValue = parseInt(gigabytes);
 
   const serverList = [
-    'irnh', 'iroh', 'irzh', 'iruh', 'irxh',
-    'irsh', 'irkh', 'irmh', 'irph', 'iryh',
-    'irvh', 'irah', 'irth', 'ireh', 'irwh'
+    'irnh', 'iroh', 'iruh',
+    'irsh', 'irph', 'irah',
+    'irth', 'ireh'
   ];
   let selectedServer = '';
   let minEnabledAccounts = Infinity;
@@ -118,16 +105,20 @@ export async function GET(req: NextRequest) {
     const newPort = parseInt(lastInbound.port) + 1;
 
     // Step 3: Generate a new UUID for the client ID
-    const newClientId = uuidv4();
+    // Change: Prefix the UUID with userId if provided
+    let newClientId = uuidv4();
+    if (userId) {
+      newClientId = `${userId}-${uuidv4().split('-').slice(1).join('-')}`;
+    }
 
     // Step 4: Define the parameters for the new inbound request
-    const params = {
+    const params:any = {
       up: '0',
       down: '0',
-      total: mbToBytes(finalGigabytes), // Convert 500MB to bytes
+      total: gigabytesValue, // Use validated gigabytes
       remark: newRemark,
       enable: 'true',
-      expiryTime: calcExpiryTime(finalExpireMinutes), // 30 minutes from now
+      expiryTime: expireMinutes, // Use validated expire time
       listen: '',
       port: newPort.toString(),
       protocol: 'vmess',
@@ -145,9 +136,22 @@ export async function GET(req: NextRequest) {
         security: 'none',
         tcpSettings: {
           header: {
-            type: 'none',
-          },
-        },
+            type: 'http',
+            request: {
+              method: 'GET',
+              path: ['/'],
+              headers: {
+                Host: ['uptvs.com']
+              }
+            },
+            response: {
+              version: '1.1',
+              status: '200',
+              reason: 'OK',
+              headers: {}
+            }
+          }
+        }
       }),
       sniffing: JSON.stringify({
         enabled: true,
@@ -193,9 +197,6 @@ export async function GET(req: NextRequest) {
     });
   }
 }
-
-
-
 
 
 

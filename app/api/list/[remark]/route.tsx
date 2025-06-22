@@ -9,7 +9,7 @@ export async function GET(
   const { remark }:any = await params; // Directly extract remark from URL params
 
   // Construct the URL based on the remark
-  const url = `http://${remark.substring(0, 3)}.giftomo.net:44445/xui/inbound/list`;
+  const url = `http://${remark.substring(0, 3)}h.giftomo.net:44445/xui/inbound/list`;
 
   // Read the cookie.csv file from the public folder
   const filePath = path.join(process.cwd(), 'public', 'cookie.csv');
@@ -51,13 +51,23 @@ export async function GET(
     // Send POST request to the constructed URL
     const response = await axios.post(url, {}, { headers });
 
-    // Check if response.data.obj exists and find the remark
     if (response.data.obj && Array.isArray(response.data.obj) && response.data.obj.length > 0) {
-      // Assuming you want to find the remark from the response
       const newAccount = response.data.obj.find((inbound: any) => inbound.remark === remark);
-      // Return the found account in the response
+      
+      if (newAccount) {
+        const filteredAccount = {
+          up: newAccount.up,
+          down: newAccount.down,
+          total: newAccount.total,
+          remark: newAccount.remark,
+          enable: newAccount.enable,
+          expiryTime: newAccount.expiryTime,
+        };
+        return Response.json(filteredAccount);
+      }
+      
       return Response.json({
-        newAccount,
+        error: 'Account not found',
       });
     } else {
       return Response.json({

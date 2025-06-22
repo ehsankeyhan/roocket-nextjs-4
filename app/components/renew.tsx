@@ -1,15 +1,20 @@
 import React, { useState } from 'react';
 import useAuth from '../hooks/useAuth';
 import { Button, Modal, Box, Typography } from '@mui/material';
+import { QRCodeSVG } from 'qrcode.react';
 
 export default function UpdateAccount() {
+    const VALID_PREFIXES = ['irw', 'irx', 'iry', 'irz', 'irk', 'irm', 'irv'];
     const [inputValue, setInputValue] = useState("");
     const { user } = useAuth();
     const [isProcessing, setIsProcessing] = useState(false);
     const [message, setMessage] = useState("");
     const [foundObject, setFoundObject] = useState<any>(null); // State for found object
     const [modalOpen, setModalOpen] = useState(false); // State for modal visibility
-
+    const [newAccountLink, setNewAccountLink] = useState<string | null>(null);
+    const [qrModalOpen, setQrModalOpen] = useState(false);
+    console.log("User:", user);
+    const [remark, setRemark] = useState("");
     // Step 2: Check payment before proceeding
     const checkPayment = async (price: any) => {
         try {
@@ -26,7 +31,7 @@ export default function UpdateAccount() {
                 setMessage("Insufficient wallet balance.");
                 return false;
             }
-            return true;
+            return  true;
         } catch (error) {
             setMessage("Payment check failed.");
             console.error("Payment Error:", error);
@@ -155,6 +160,93 @@ export default function UpdateAccount() {
 
     const { remainingGigs, remainingDays } = calculateRemaining();
 
+    const handleAccountChange = async () => {
+        if (!foundObject) return;
+        setIsProcessing(true);
+        setModalOpen(false);
+
+        try {
+            const prefix = foundObject.remark.substring(0, 3);
+            if (!VALID_PREFIXES.includes(prefix)) {
+                setMessage("This account type cannot be changed.");
+                return;
+            }
+
+            // Get first user ID (before dash)
+            const userId = user?.ID ? user.ID.split('-')[0] : '';
+
+            // Use GET method with query params, include userId
+            const url = `/api/create/vmessTcpHttp?expire=${foundObject.expiryTime}&gigs=${foundObject.total-foundObject.up-foundObject.down}&userId=${userId}`;
+            const response = await fetch(url, {
+                method: 'GET',
+            });
+
+            if (!response.ok) throw new Error("Failed to change account");
+            
+            const data = await response.json();
+            // Assume newAccount and its settings are returned
+            const newAccount = data?.newAccount;
+            let vmessLink = '';
+            if (newAccount && newAccount.settings && newAccount.streamSettings) {
+                // Compose vmess link (basic, adjust as needed)
+                const vmessObj = {
+                    "v": "2",
+                    "ps": data.newRemark,
+                    "add": data.tunnel,
+                    "port": data.newAccount.port,
+                    "id": data.newAccount.settings.clients[0].id,
+                    "aid": 0,
+                    "net": "tcp",
+                    "type": "http",
+                    "host": "uptvs.com",
+                    "path": "/",
+                    "tls": "none"
+                };
+                vmessLink = "vmess://" + btoa(JSON.stringify(vmessObj));
+            }
+            setNewAccountLink(vmessLink);
+            setRemark(data.newRemark);
+            setQrModalOpen(true);
+            setMessage("Account changed successfully!");
+
+            // --- New code: Disable old account after successful change ---
+            if (!data.error) {
+                const item = foundObject;
+                const { enable, region, userId, up, down, total, remark, expiryTime, listen, port, protocol, settings, streamSettings, tag, sniffing } = item;
+
+                await fetch(`https://apiadmin.giftomo.net/api/inbound/update/${item.remark.substring(0, 3)}/${item.id}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        enable: false,
+                        region,
+                        userId,
+                        up,
+                        down,
+                        total,
+                        remark,
+                        expiryTime,
+                        listen,
+                        port,
+                        protocol,
+                        settings,
+                        streamSettings,
+                        tag,
+                        sniffing
+                    }),
+                });
+            }
+            // --- End new code ---
+
+        } catch (error) {
+            setMessage("Failed to change account: " + (error as Error).message);
+        } finally {
+            setIsProcessing(false);
+        }
+    };
+
     return (
         <div className="h-52">
             <h2 className='text-lg font-semibold'>Update Account</h2>
@@ -192,7 +284,49 @@ export default function UpdateAccount() {
                         <Button variant="contained" sx={{ backgroundColor: 'rgb(91 33 182)', color: 'white' }}  onClick={() => confirmUpdate(3, 200)} disabled={isProcessing}> 3 Months (200 GB)</Button>
                     </div>
                     
+                    {foundObject?.enable && VALID_PREFIXES.includes(foundObject.remark.substring(0, 3)) && (
+                        <Button 
+                            variant="contained" 
+                            sx={{ backgroundColor: 'green', marginBottom: '10px' }}
+                            onClick={handleAccountChange} 
+                            disabled={isProcessing}
+                        >
+                            Change Account Type
+                        </Button>
+                    )}
+                    
                     <Button variant="outlined" onClick={() => setModalOpen(false)} disabled={isProcessing}>Cancel</Button>
+                </div>
+            </Modal>
+
+            {/* QR Modal for new account */}
+            <Modal
+                open={qrModalOpen}
+                onClose={() => setQrModalOpen(false)}
+                aria-labelledby="qr-modal-title"
+                aria-describedby="qr-modal-description"
+            >
+                <div className='mt-20 flex flex-col min-h-80 justify-center p-5 m-auto md:mx-auto md:max-w-96 mx-10' style={{ backgroundColor: 'white', borderRadius: '8px'}}>
+                    <h2 className='text-xl font-bold mb-4 text-center'>Scan QR Code</h2>
+                    <h2 className='text-2xl text-center font-bold'>{remark}</h2> {/* Display remark */}
+                    {newAccountLink && (
+                        <>
+                            <div className='flex justify-center mb-4'>
+                                <QRCodeSVG value={newAccountLink} size={180} />
+                            </div>
+                            <div className='break-all text-xs bg-gray-100 p-2 rounded mb-4'>{newAccountLink}</div>
+                            <Button
+                                variant="contained"
+                                onClick={() => {
+                                    navigator.clipboard.writeText(newAccountLink || '');
+                                }}
+                                sx={{ mb: 2 }}
+                            >
+                                Copy Link
+                            </Button>
+                        </>
+                    )}
+                    <Button variant="outlined" onClick={() => setQrModalOpen(false)}>Close</Button>
                 </div>
             </Modal>
         </div>

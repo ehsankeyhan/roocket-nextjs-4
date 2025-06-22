@@ -52,13 +52,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }
   }, [localToken]);
-  useEffect(() => {
-      setToken(localToken);
-      const cookieValue = getCookie('sessionToken')
-      if (!cookieValue) {
-        handleLogout()
-      }
-  }, [data]);
+  // useEffect(() => {
+  //     setToken(localToken);
+  //     const cookieValue = getCookie('sessionToken')
+  //     if (!cookieValue) {
+  //       handleLogout()
+  //     }
+  // }, [data]);
 
   useEffect(() => {
     if (localUser) {
@@ -77,7 +77,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const expires = new Date(Date.now() + maxAgeInSeconds * 1000).toUTCString();
       document.cookie = `sessionToken=${data.user.ID}; expires=${expires}; path=/`;
       localStorage.setItem('user', JSON.stringify(data.user));
-      const origin = '/' || '/';
+      const origin = '/';
       navigate.push(origin);
       setToken(data.user.ID);
       setUser(data.user);

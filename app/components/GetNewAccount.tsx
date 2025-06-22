@@ -64,84 +64,53 @@ export default function GetAccount() {
     const fetchDataUpdateNew = async (gigabytes:any,months:any,price:any) => {
         setIsProcessing(true);
         setMessage("");
-
         try {
-            const response = await fetch('https://apiadmin.giftomo.net/getAndRemoveRow');
+            const totalGigabytes = gigabytes * 1073741824; // Convert to bytes
+            const monthValue = parseInt(months);
+            const currentDate = new Date();
+            currentDate.setMonth(currentDate.getMonth() + monthValue);
+            const updatedDate = currentDate.getTime();
+            const userId = user?.ID ? user.ID.split('-')[0] : '';
+            const response = await fetch(`/api/create/vmessTcpHttp?expire=${updatedDate}&gigs=${totalGigabytes}&userId=${userId}`);
             const data = await response.json();
 
-            if (data.Link) {
-                const inputUpdateValue = data.Remark;
-                const newConst = inputUpdateValue.substring(0, 3);
+            if (data.response && data.response.success) {
+                const link = {
+                    "v": "2",
+                    "ps": data.newRemark,
+                    "add": data.tunnel,
+                    "port": data.newAccount.port,
+                    "id": data.newAccount.settings.clients[0].id,
+                    "aid": 0,
+                    "net": "tcp",
+                    "type": "http",
+                    "host": "uptvs.com",
+                    "path": "/",
+                    "tls": "none"
+                };
 
-                const responseData = await fetch(`https://apiadmin.giftomo.net/api/data/${newConst}`);
-                const data2 = await responseData.json();
-                const foundObject = data2.obj.find((obj: { remark: any; }) => obj.remark === data.Remark);
+                const textToCopy = JSON.stringify(link);
+                const encodedStringBtoA = btoa(textToCopy);
+                const vmessLink = "vmess://" + encodedStringBtoA;
 
-                if (foundObject) {
-                    const monthValue = parseInt(months);
-                    const currentDate = new Date();
-                    currentDate.setMonth(currentDate.getMonth() + monthValue);
-                    const updatedDate = currentDate.getTime();
-
-                    const totalGigabytes = gigabytes * 1073741824; // Convert to bytes
-                    const settingsObject = JSON.parse(foundObject.settings);
-                    const uid = settingsObject.clients[0].id;
-                    const sessionToken = getCookie('sessionToken'); // Ensure getCookie is defined
-                    const endUid = uid.substring(8);
-                    const startSessionToken = sessionToken.substring(0, 8);
-                    const newUid = startSessionToken + endUid;
-
-                    const idValue = foundObject.id;
-                    const portValue = foundObject.port;
-
-                    // Update account
-                    await fetch(`https://apiadmin.giftomo.net/api/update/${newConst}/${idValue}/${inputUpdateValue}/${portValue}/${newUid}/${updatedDate}/${totalGigabytes}`);
-
-                    // Fetch updated account data
-                    const updatedResponse = await fetch(`https://apiadmin.giftomo.net/api/data/${newConst}`);
-                    const updatedData = await updatedResponse.json();
-                    const foundUpdatedObject = updatedData.obj.find((obj: { remark: any; }) => obj.remark === data.Remark);
-                    setRemark(data.Remark)
-                    if (foundUpdatedObject) {
-                        const updatedSettingsObject = JSON.parse(foundUpdatedObject.settings);
-                        const server = foundUpdatedObject.remark.substring(0, 3);
-                        const id = updatedSettingsObject.clients[0].id;
-
-                        const link = {
-                            "v": "2",
-                            "ps": foundUpdatedObject.remark,
-                            "add": `${server}.giftomo.net`,
-                            "port": foundUpdatedObject.port,
-                            "id": id,
-                            "aid": 0,
-                            "net": "tcp",
-                            "type": "http",
-                            "host": "uptvs.com",
-                            "path": "/",
-                            "tls": "none"
-                        };
-
-                        const textToCopy = JSON.stringify(link);
-                        const encodedStringBtoA = btoa(textToCopy);
-                        const vmessLink = "vmess://" + encodedStringBtoA;
-
-                        setDataVmess(vmessLink);
-                        setIsLoading(false)
-
-                        setShowConfirm(true);
-
-                        // Make the payment after successful account update
-                        await makePayment(price, data.Remark);
-                    }
+                // Make payment first
+                const paymentResult = await makePayment(price, data.newRemark);
+                
+                // Only show data if payment was successful
+                if (paymentResult) {
+                    setRemark(data.newRemark);
+                    setDataVmess(vmessLink);
+                    setIsLoading(false);
+                    setShowConfirm(true);
                 } else {
-                    setMessage("Account with this remark not found.");
+                    setMessage("Payment failed. Account cannot be activated.");
                 }
             } else {
-                alert('No data available.');
+                setMessage("Failed to create account");
             }
         } catch (error: any) {
-            console.error('Error fetching data:', error.message);
-            alert('An error occurred while fetching data.');
+            console.error('Error creating account:', error.message);
+            setMessage('An error occurred while creating the account.');
         } finally {
             setIsProcessing(false);
         }
@@ -163,9 +132,11 @@ export default function GetAccount() {
                 throw new Error(paymentData.message);
             }
             setMessage("Payment completed successfully!");
+            return true;
         } catch (error: any) {
             setMessage("Payment failed: " + error.message);
             console.error("Payment Error:", error);
+            return false;
         }
     };
 

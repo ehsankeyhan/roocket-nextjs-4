@@ -40,3 +40,45 @@ PORT=3001 pm2 start npm --name "giftomo" -- start
 
 
 f6c3a369
+
+sudo npm install -g n
+sudo n latest
+or
+apt install npm
+sudo apt install -y nodejs
+
+
+npm install express puppeteer-real-browser puppeteer-extra-plugin-stealth axios
+sudo apt-get install xvfb
+
+find browser:
+dpkg --get-selections | grep -i browser
+
+wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+
+sudo apt install -y ./google-chrome-stable_current_amd64.deb
+
+google-chrome --version
+node spotifyDownloader.js
+npm install -g pm2
+pm2 start spotifyDownloader.js --name spotify-downloader
+pm2 start tokenScraper.js --name tokenScraper
+pm2 startup
+pm2 save
+
+
+sudo nano /etc/tmpfiles.d/tmp.conf
+
+add this:
+d /tmp 1777 root root 1d
+
+sudo systemctl restart systemd-tmpfiles-clean
+
+
+sudo systemctl status systemd-tmpfiles-clean --no-pager
+
+
+force clean :
+sudo systemd-tmpfiles --clean
+ls -lah /tmp
+
